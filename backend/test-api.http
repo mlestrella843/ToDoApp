@@ -4,3 +4,12 @@ Content-Type: application/json
 {
   "title": "Cook Today"
 }
+
+
+################################
+PUT http://localhost:5001/api/tasks/1741275534769
+Content-Type: application/json
+
+{
+  "title": "Cook Today"
+}

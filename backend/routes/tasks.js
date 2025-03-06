@@ -24,4 +24,47 @@ router.post("/", (req, res) => {
   res.status(201).json(newTask); // Respond with the created task
 });
 
+router.delete("/:id", (req, res) => {
+  const taskId = parseInt(req.params.id); // Convert the ID to a number
+
+  // Find the index of the task in the array
+  const taskIndex = tasks.findIndex(task => task.id === taskId);
+
+  // If the task is not found, return a 404 error
+  if (taskIndex === -1) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+  // Remove the task from the array
+  tasks.splice(taskIndex, 1);
+
+  // Send a success response
+  res.status(200).json({ message: "Task deleted successfully" });
+});
+router.put("/:id", (req, res) => {
+  const taskId = parseInt(req.params.id); // Convert the ID to a number
+  const { title } = req.body; // Extract the new title from the request body
+
+  // Find the task in the array
+  const taskIndex = tasks.findIndex(task => task.id === taskId);
+
+  // If the task is not found, return a 404 error
+  if (taskIndex === -1) {
+    return res.status(404).json({ message: "Task not found" });
+  }
+
+
+  // Validate the new title
+  if (!title || title.trim() === "") {
+    return res.status(400).json({ message: "Title is required" });
+  }
+
+  // Update the task title
+  tasks[taskIndex].title = title;
+
+  // Send a success response with the updated task
+  res.status(200).json(tasks[taskIndex]);
+});
+
+
 export default router

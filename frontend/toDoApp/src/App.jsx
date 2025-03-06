@@ -7,6 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL + "/api/tasks";
 function App() {
   const [tasks, setTasks] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [selectedTask, setSelectedTask] = useState(null); // ✅ Save selected task for editing or deleting
 
   // ✅ Fetch tasks when the component mounts
   useEffect(() => {
@@ -48,6 +49,50 @@ function App() {
       .catch((err) => console.error("❌ An error occurred:", err));
   };
 
+  // ✅ Function to delete a task
+  const deleteTask = () => {
+    if (!selectedTask) {
+      alert("Please select a task to delete.");
+      return;
+    }
+
+    fetch(`${API_URL}/${selectedTask.id}`, {
+      method: "DELETE", // Send a DELETE request to the backend
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error("Error deleting task"); // Handle any errors
+        return res.json();
+      })
+      .then(() => {
+        setTasks(tasks.filter(task => task.id !== selectedTask.id)); // Remove the deleted task from the UI
+        setSelectedTask(null); // Clear selection
+      })
+      .catch((err) => console.error("❌ Error deleting task:", err));
+  };
+
+  // ✅ Function to edit a task
+  const editTask = () => {
+    if (!selectedTask) {
+      alert("Please select a task to edit.");
+      return;
+    }
+
+    const newTitle = prompt("Enter new task name:", selectedTask.title);
+    if (!newTitle || !newTitle.trim()) return;
+
+    fetch(`${API_URL}/${selectedTask.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title: newTitle }),
+    })
+    .then((res) => res.json())
+    .then((updatedTask) => {
+      setTasks(tasks.map(task => task.id === selectedTask.id ? { ...task, title: newTitle } : task)); // Update UI
+      setSelectedTask(null); // Clear selection
+    })
+    .catch((err) => console.error("❌ Error updating task:", err));
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       {/* ✅ Card Container */}
@@ -72,6 +117,18 @@ function App() {
             >
               Add Task
             </button>
+            <button 
+              onClick={deleteTask}
+              className="mt-2 w-full bg-red-500 text-white p-2 rounded-md hover:bg-red-600 transition"
+            >
+              Delete Task
+            </button>
+            <button 
+              onClick={editTask}
+              className="mt-2 w-full bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition"
+            >
+              Edit Task
+            </button>
           </div>
 
           {/* ✅ Right: Task List */}
@@ -80,7 +137,9 @@ function App() {
               {tasks.map((task) => (
                 <li 
                   key={task.id} 
-                  className="p-3 bg-gray-200 rounded-md flex justify-between items-center"
+                  className={`p-3 bg-gray-200 rounded-md flex justify-between items-center cursor-pointer
+                    ${selectedTask?.id === task.id ? "border-2 border-blue-500" : ""}`}
+                  onClick={() => setSelectedTask(task)} // ✅ Select task on click
                 >
                   <span>{task.title}</span>
                 </li>
@@ -94,3 +153,4 @@ function App() {
 }
 
 export default App;
+
